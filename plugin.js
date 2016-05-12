@@ -1,6 +1,15 @@
 (function() {
     'use strict';
 
+    CKEDITOR.config.translateFrom = [ 'ru', 'русский' ];
+    CKEDITOR.config.translateTo = [ 'en', 'английский' ];
+
+    CKEDITOR.config.translate = function(data, from, to) {
+        return new vow.Promise(function(resolve) {
+            resolve(data);
+        });
+    };
+
     var CMD_TRANSLATE = 'translate';
     var CLASS_TRANSLATE_WRAP = 'cke_contents_wrap_translate';
 
@@ -59,7 +68,7 @@
             var headerId = editor.ui.spaceId('translate_header');
 
             var clickLangFn = CKEDITOR.tools.addFunction(function() {
-				
+
 			});
 
             var cmdTranslate = editor.addCommand(CMD_TRANSLATE, {
