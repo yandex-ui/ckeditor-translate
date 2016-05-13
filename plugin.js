@@ -26,7 +26,7 @@
     var CMD_SHOW_TRANSLATOR = 'show_translator';
     var CMD_TRANSLATE = 'translate';
     var CLASS_TRANSLATE_WRAP = 'cke_contents_wrap_translate';
-    var CLASS_TRANSLATE_LOAD = 'cke_translate_load';
+    var CLASS_TRANSLATE_LOAD = 'cke_translate_spinner';
 
     CKEDITOR.addTemplate(
         'translateWrapper',
@@ -68,6 +68,7 @@
 
     CKEDITOR.plugins.add('translate', {
         modes: { wysiwyg: 1, source: 1 },
+        requires: 'switchmode',
 
         onLoad: function() {
             CKEDITOR.plugins.setLang('translate', 'ru', {
@@ -77,6 +78,16 @@
 
         init: function(editor) {
             var lang = editor.lang.translate;
+
+            editor.translateDebounce = debounce(function() {
+                var cmdShowTranslator = editor.getCommand(CMD_SHOW_TRANSLATOR);
+
+                if (cmdShowTranslator.state === CKEDITOR.TRISTATE_ON) {
+                    var cmdTranslate = editor.getCommand(CMD_TRANSLATE);
+                    cmdTranslate.enable();
+                    cmdTranslate.exec();
+                }
+            }, 100);
 
             editor.fnTranslateLangSelect = CKEDITOR.tools.addFunction(this.onTranslateLangSelect, editor);
             editor.fnTranslateLangFrom = CKEDITOR.tools.addFunction(this.onTranslateLangFrom, editor);
@@ -112,22 +123,25 @@
 
             cmdTranslate.on('state', this.onStateTranslate, editor);
             cmdShowTranslator.on('state', this.onStateShowTranslator, editor);
-            editor.on('afterCommandExec', this.onAfterCommandExec);
             editor.on('destroy', this.onDestroy);
-
-            // editor.on('loaded', this.onLoaded);
-            // editor.on('mode', this.onMode);
-            // editor.on('beforeSetMode', this.onBeforeSetMode);
         },
 
         /**
          * @this {Editor}
          */
         onDestroy: function() {
+            this.translateDebounce.cancel();
             CKEDITOR.tools.removeFunction(this.fnTranslateLangSelect);
             CKEDITOR.tools.removeFunction(this.fnTranslateLangFrom);
             CKEDITOR.tools.removeFunction(this.fnTranslateLangTo);
             CKEDITOR.tools.removeFunction(this.fnTranslateHeaderUpdate);
+        },
+
+        /**
+         * @this {Editor}
+         */
+        onChangeContent: function() {
+            this.translateDebounce();
         },
 
         /**
@@ -201,6 +215,7 @@
             var cmdTranslate = this.getCommand(CMD_TRANSLATE);
             var cmdShowTranslator = this.getCommand(CMD_SHOW_TRANSLATOR);
             var wrap = this.ui.space('contents_wrap');
+            var plugin = this.plugins.translate;
 
             switch (cmdShowTranslator.state) {
             case CKEDITOR.TRISTATE_ON:
@@ -214,10 +229,19 @@
                     contentId: this.ui.spaceId('translate_content')
                 }));
 
-                cmdTranslate.exec();
+                this.translateDebounce();
+
+                this.on('mode', plugin.onChangeContent);
+                this.on('change', plugin.onChangeContent);
+                this.on('afterCommandExec', plugin.onAfterCommandExec);
                 break;
 
             case CKEDITOR.TRISTATE_OFF:
+                this.removeListener('mode', plugin.onChangeContent);
+                this.removeListener('change', plugin.onChangeContent);
+                this.removeListener('afterCommandExec', plugin.onAfterCommandExec);
+
+                this.translateDebounce.cancel();
                 cmdTranslate.disable();
                 wrap.removeClass(CLASS_TRANSLATE_WRAP);
 
@@ -231,6 +255,7 @@
         },
 
         /**
+         * Выполнение команды перевода
          * @this {CKEDITOR.command}
          */
         onExecTranslate: function(editor, data) {
@@ -251,8 +276,6 @@
                 returnValue: ''
             };
 
-            console.log('>> exec', data);
-
             if (!data) {
                 editor.fire('afterCommandExec', eventData);
                 return;
@@ -268,6 +291,7 @@
         },
 
         /**
+         * Реакция на событие выполнения команды перевода
          * @this {Editor}
          */
         onAfterCommandExec: function(event) {
@@ -279,12 +303,16 @@
                 return;
             }
 
-            console.log('>> after', event.data.returnValue);
+            // обновление перевода
             this.ui.space('translate_content').setHtml(event.data.returnValue);
+            // установка состояния окончания выполнения перевода
             event.data.command.setState(CKEDITOR.TRISTATE_OFF)
         },
 
         /**
+         * Изменение состояния выполнения команды перевода
+         * CKEDITOR.TRISTATE_ON - вешаем спиннер
+         * CKEDITOR.TRISTATE_OFF - снимаем спиннер
          * @this {Editor}
          */
         onStateTranslate: function() {
@@ -300,4 +328,54 @@
             }
         }
     });
+
+    var now = Date.now || function() {
+        return new Date().getTime();
+    };
+
+    function debounce(func, wait, immediate) {
+        var timeout, args, context, timestamp, result;
+
+        var later = function() {
+            var last = now() - timestamp;
+
+            if (last < wait && last >= 0) {
+                timeout = setTimeout(later, wait - last);
+
+            } else {
+                timeout = null;
+                if (!immediate) {
+                    result = func.apply(context, args);
+                    if (!timeout) {
+                        context = args = null;
+                    }
+                }
+            }
+        };
+
+        var _debounce = function() {
+            context = this;
+            args = arguments;
+            timestamp = now();
+
+            var callNow = immediate && !timeout;
+            if (!timeout) {
+                timeout = setTimeout(later, wait);
+            }
+
+            if (callNow) {
+                result = func.apply(context, args);
+                context = args = null;
+            }
+
+            return result;
+        };
+
+        _debounce.cancel = function() {
+            clearTimeout(timeout);
+            context = args = null;
+        };
+
+        return _debounce;
+    }
 }());
