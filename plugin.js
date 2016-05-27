@@ -1,24 +1,42 @@
 (function() {
     'use strict';
 
-    // TODO сделать перезапрос перевода, если в момент выполенния перевода произошли изменения
-
     /**
      * Ссылка на помощь
      * @type {string}
      */
     CKEDITOR.config.translateInfo = '';
 
+    /**
+     * Начальное значение языка, с которого выполняется перевод
+     * @type {array|string}
+     */
     CKEDITOR.config.translateFrom = [ 'ru', 'русский' ];
 
+    /**
+     * Начальное значение языка, на который выполняется перевод
+     * @type {array|string}
+     */
     CKEDITOR.config.translateTo = [ 'en', 'английский' ];
 
+    /**
+     * Перевод текста
+     * @param {string} data текст для перевода
+     * @param {string} from обозначение языка, с которого выполняется перевод
+     * @param {string} to обозначение языка, на который выполняется перевод
+     * @returns {vow.Promise}
+     */
     CKEDITOR.config.translate = function(data, from, to) {
         return new vow.Promise(function(resolve) {
             resolve(data);
         });
     };
 
+    /**
+     * Выбор языка перевода
+     * @param {string} currentLang текущее обозначение языка
+     * @returns {vow.Promise}
+     */
     CKEDITOR.config.translateLangSelect = function(currentLang) {
         return new vow.Promise(function(resolve) {
             resolve(currentLang);
@@ -147,6 +165,9 @@
         },
 
         /**
+         * Получение названия или обозначения языка, с которого выполняется перевод
+         * @param {boolean} [needName=false] true, если необходимо получить название
+         * @returns {string}
          * @this {Editor}
          */
         onTranslateLangFrom: function(needName) {
@@ -158,6 +179,9 @@
         },
 
         /**
+         * Получение названия или обозначения языка, на который выполняется перевод
+         * @param {boolean} [needName=false] true, если необходимо получить название
+         * @returns {string}
          * @this {Editor}
          */
         onTranslateLangTo: function(needName) {
@@ -169,8 +193,9 @@
         },
 
         /**
-         * @param {string} direction from|to
-         * @param {string} currentLang
+         * Выполнение запроса на выбор языка
+         * @param {string} direction from|to обозначения языка с какого или на какой выполняется перевод
+         * @param {string} currentLang обозначение текущего языка
          * @this {Editor}
          */
         onTranslateLangSelect: function(direction, currentLang) {
@@ -186,6 +211,7 @@
         },
 
         /**
+         * Обновление "шапки" окна перевода с выводом языков
          * @this {Editor}
          */
         onTranslateHeaderUpdate: function() {
@@ -211,6 +237,7 @@
         },
 
         /**
+         * Реакция на событие переключениия переводчика
          * @this {Editor}
          */
         onStateShowTranslator: function() {
@@ -262,6 +289,13 @@
          */
         onExecTranslate: function(editor, data) {
             if (this.state !== CKEDITOR.TRISTATE_OFF) {
+                if (this.state === CKEDITOR.TRISTATE_ON) {
+                    // запрос перевода до окончания текущего
+                    // установка признака необходимости повторного запуска запроса на перевод
+                    // после завершения текущего
+                    this.notActual = true;
+                }
+
                 return;
             }
 
@@ -294,6 +328,7 @@
 
         /**
          * Реакция на событие выполнения команды перевода
+         * @param {Object} event
          * @this {Editor}
          */
         onAfterCommandExec: function(event) {
@@ -301,14 +336,22 @@
                 return;
             }
 
-            if (event.data.command.state === CKEDITOR.TRISTATE_DISABLED) {
+            var cmdTranslate = event.data.command;
+
+            if (cmdTranslate.state === CKEDITOR.TRISTATE_DISABLED) {
                 return;
             }
 
             // обновление перевода
             this.ui.space('translate_content').setHtml(event.data.returnValue);
             // установка состояния окончания выполнения перевода
-            event.data.command.setState(CKEDITOR.TRISTATE_OFF)
+            cmdTranslate.setState(CKEDITOR.TRISTATE_OFF);
+
+            // перезапуск, если в момент выполнения перевода пришел новый запрос на перевод
+            if (cmdTranslate.notActual) {
+                cmdTranslate.notActual = false;
+                this.translateDebounce();
+            }
         },
 
         /**
