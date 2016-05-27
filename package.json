@@ -24,7 +24,7 @@
     "url": "git://github.com/yandex-ui/ckeditor-translate.git"
   },
   "devDependencies": {
-    "ckeditor": "git://github.com/yandex-ui/ckeditor.git#rc-0.2",
+    "ckeditor": "https://github.com/yandex-ui/ckeditor.git#rc-0.2",
     "lodash": "4.12.0",
     "vow": "0.4.12"
   },

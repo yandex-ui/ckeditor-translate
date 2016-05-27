@@ -1,6 +1,8 @@
 (function() {
     'use strict';
 
+    // TODO сделать перезапрос перевода, если в момент выполенния перевода произошли изменения
+
     /**
      * Ссылка на помощь
      * @type {string}
@@ -167,11 +169,11 @@
         },
 
         /**
-		 * @param {string} direction from|to
-		 * @param {string} currentLang
+         * @param {string} direction from|to
+         * @param {string} currentLang
          * @this {Editor}
          */
-		onTranslateLangSelect: function(direction, currentLang) {
+        onTranslateLangSelect: function(direction, currentLang) {
             this.config.translateLangSelect(currentLang).then(function(lang) {
                 if (direction === 'from') {
                     this.config.translateFrom = lang;
@@ -181,7 +183,7 @@
 
                 CKEDITOR.tools.callFunction(this.fnTranslateHeaderUpdate);
             }, this);
-		},
+        },
 
         /**
          * @this {Editor}
