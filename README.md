@@ -1,3 +1,3 @@
 # ckeditor-translate
 
-The translator interface.
+Translation interface for CKEditor.
