@@ -377,7 +377,9 @@
                     elementWrap.on('scroll', plugin.syncScrollEditable, this);
                 }
 
-                this.fire('translate:enabled');
+                if (cmdShowTranslator.previousState === CKEDITOR.TRISTATE_OFF) {
+                    this.fire('translate:enabled');
+                }
                 break;
 
             case CKEDITOR.TRISTATE_OFF:
@@ -390,14 +392,18 @@
                 wrap.removeClass(CLASS_TRANSLATE_WRAP);
 
                 var elementHeader = this.ui.space('translate_header');
-                elementHeader && elementHeader.remove();
+                if (elementHeader) {
+                    elementHeader.remove();
+                }
 
                 elementWrap = this.ui.space('translate_wrap');
                 if (elementWrap) {
                     elementWrap.remove();
                 }
 
-                this.fire('translate:disabled');
+                if (cmdShowTranslator.previousState === CKEDITOR.TRISTATE_ON) {
+                    this.fire('translate:disabled');
+                }
                 break;
             }
         },
