@@ -1,8 +1,5 @@
-.npmignore
-.idea
-.git
-.npm-debug.log
-.gitignore
-node_modules
-bower_components
-samples
+**
+!LICENSE
+!README.md
+!package.json
+!plugin.js

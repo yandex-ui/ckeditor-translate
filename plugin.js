@@ -10,14 +10,23 @@
     /**
      * Начальное значение языка, с которого выполняется перевод
      * @type {array|string}
+     * @default [ 'ru', 'русский' ]
      */
     CKEDITOR.config.translateFrom = [ 'ru', 'русский' ];
 
     /**
      * Начальное значение языка, на который выполняется перевод
      * @type {array|string}
+     * @default [ 'en', 'английский' ]
      */
     CKEDITOR.config.translateTo = [ 'en', 'английский' ];
+
+    /**
+     * Автоматическое включение переводчика после инициализации редактора
+     * @type {boolean}
+     * @default false
+     */
+    CKEDITOR.config.translateAutoEnable = false;
 
     /**
      * Перевод текста
@@ -43,11 +52,33 @@
         });
     };
 
+    /**
+     * Название команды переключения интерфейса переводчика
+     * @type {string}
+     */
     var CMD_SHOW_TRANSLATOR = 'show_translator';
+
+    /**
+     * Название команды выполнения перевода
+     * @type {string}
+     */
     var CMD_TRANSLATE = 'translate';
+
+    /**
+     * Название класса для враппера содержимого редактора
+     * @type {string}
+     */
     var CLASS_TRANSLATE_WRAP = 'cke_contents_wrap_translate';
+
+    /**
+     * Название класса индикатора загрузки
+     * @type {string}
+     */
     var CLASS_TRANSLATE_LOAD = 'cke_translate_spinner';
 
+    /**
+     * Шаблон блока с результатом перевода
+     */
     CKEDITOR.addTemplate(
         'translateWrapper',
         '<div id="{wrapId}" class="cke_translate_wrap">' +
@@ -55,6 +86,9 @@
         '</div>'
     );
 
+    /**
+     * Шаблон кнопки информации о переводчике
+     */
     CKEDITOR.addTemplate(
         'translateInfo',
         '<a class="cke_translate_header_info" href="{href}" target="_blank" rel="nofollow noopener">' +
@@ -65,6 +99,9 @@
         '</a>'
     );
 
+    /**
+     * Шаблон блока "шапки" переводчика с выбором языков
+     */
     CKEDITOR.addTemplate(
         'translateHeader',
         '<div id="{headerId}" class="cke_translate_header">' +
@@ -97,8 +134,6 @@
         },
 
         init: function(editor) {
-            var lang = editor.lang.translate;
-
             editor.translateDebounce = debounce(function() {
                 var cmdShowTranslator = editor.getCommand(CMD_SHOW_TRANSLATOR);
 
@@ -135,15 +170,27 @@
             });
 
             editor.ui.addButton('Translate', {
-                label: lang.translator,
-                title: lang.translator,
+                label: editor.lang.translate.translator,
+                title: editor.lang.translate.translator,
                 icon: null,
                 command: CMD_SHOW_TRANSLATOR
             });
 
             cmdTranslate.on('state', this.onStateTranslate, editor);
             cmdShowTranslator.on('state', this.onStateShowTranslator, editor);
+            editor.on('contentDom', this.onContentDom);
             editor.on('destroy', this.onDestroy);
+        },
+
+        /**
+         * Автоматическое включение переводчика после инициализации редактора,
+         * если установлена настройка translateAutoEnable
+         * @this {Editor}
+         */
+        onContentDom: function() {
+            if (this.config.translateAutoEnable) {
+                this.getCommand(CMD_SHOW_TRANSLATOR).setState(CKEDITOR.TRISTATE_ON);
+            }
         },
 
         /**
@@ -158,10 +205,13 @@
         },
 
         /**
+         * Реакция на событие любого изменения содержимого редактора
          * @this {Editor}
          */
         onChangeContent: function() {
-            this.translateDebounce();
+            if (this.getCommand(CMD_SHOW_TRANSLATOR).state === CKEDITOR.TRISTATE_ON) {
+                this.translateDebounce();
+            }
         },
 
         /**
