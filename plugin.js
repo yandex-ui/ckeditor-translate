@@ -376,6 +376,8 @@
                 if (elementWrap) {
                     elementWrap.on('scroll', plugin.syncScrollEditable, this);
                 }
+
+                this.fire('translate:enabled');
                 break;
 
             case CKEDITOR.TRISTATE_OFF:
@@ -394,6 +396,8 @@
                 if (elementWrap) {
                     elementWrap.remove();
                 }
+
+                this.fire('translate:disabled');
                 break;
             }
         },
