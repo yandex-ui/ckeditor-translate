@@ -1,6 +1,6 @@
 {
   "name": "ckeditor-translate",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Translation interface for CKEditor.",
   "keywords": [
     "ckeditor",

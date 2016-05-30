@@ -180,6 +180,7 @@
             cmdShowTranslator.on('state', this.onStateShowTranslator, editor);
             editor.on('contentDom', this.onContentDom);
             editor.on('destroy', this.onDestroy);
+            editor.on('mode', this.onMode);
         },
 
         /**
@@ -196,12 +197,63 @@
         /**
          * @this {Editor}
          */
+        onMode: function() {
+            this.editable().on('scroll', this.plugins.translate.syncScrollWrap, this);
+        },
+
+        /**
+         * @this {Editor}
+         */
         onDestroy: function() {
             this.translateDebounce.cancel();
             CKEDITOR.tools.removeFunction(this.fnTranslateLangSelect);
             CKEDITOR.tools.removeFunction(this.fnTranslateLangFrom);
             CKEDITOR.tools.removeFunction(this.fnTranslateLangTo);
             CKEDITOR.tools.removeFunction(this.fnTranslateHeaderUpdate);
+        },
+
+        /**
+         * Синхронизация скрола редактора с окном перевода
+         * @param {Object} event
+         * @this {Editor}
+         */
+        syncScrollWrap: function(event) {
+            if (event.data.$.target.lockSyncScroll) {
+                event.data.$.target.lockSyncScroll = false;
+                return;
+            }
+
+            if (this.getCommand(CMD_SHOW_TRANSLATOR).state !== CKEDITOR.TRISTATE_ON) {
+                return;
+            }
+
+            var scroller = this.ui.space('translate_wrap');
+            if (!scroller) {
+                return;
+            }
+
+            scroller.$.lockSyncScroll = true;
+            scroller.$.scrollTop = event.data.$.target.scrollTop;
+        },
+
+        /**
+         * Синхронизация скрола окна перевода с редактором
+         * @param {Object} event
+         * @this {Editor}
+         */
+        syncScrollEditable: function(event) {
+            if (event.data.$.target.lockSyncScroll) {
+                event.data.$.target.lockSyncScroll = false;
+                return;
+            }
+
+            var scroller = this.editable();
+            if (!scroller) {
+                return;
+            }
+
+            scroller.$.lockSyncScroll = true;
+            scroller.$.scrollTop = event.data.$.target.scrollTop;
         },
 
         /**
@@ -295,6 +347,7 @@
             var cmdShowTranslator = this.getCommand(CMD_SHOW_TRANSLATOR);
             var wrap = this.ui.space('contents_wrap');
             var plugin = this.plugins.translate;
+            var elementWrap;
 
             switch (cmdShowTranslator.state) {
             case CKEDITOR.TRISTATE_ON:
@@ -313,6 +366,11 @@
                 this.on('mode', plugin.onChangeContent);
                 this.on('change', plugin.onChangeContent);
                 this.on('afterCommandExec', plugin.onAfterCommandExec);
+
+                elementWrap = this.ui.space('translate_wrap');
+                if (elementWrap) {
+                    elementWrap.on('scroll', plugin.syncScrollEditable, this);
+                }
                 break;
 
             case CKEDITOR.TRISTATE_OFF:
@@ -327,14 +385,18 @@
                 var elementHeader = this.ui.space('translate_header');
                 elementHeader && elementHeader.remove();
 
-                var elementWrap = this.ui.space('translate_wrap');
-                elementWrap && elementWrap.remove();
+                elementWrap = this.ui.space('translate_wrap');
+                if (elementWrap) {
+                    elementWrap.remove();
+                }
                 break;
             }
         },
 
         /**
          * Выполнение команды перевода
+         * @param {Editor} editor
+         * @param {string} data
          * @this {CKEDITOR.command}
          */
         onExecTranslate: function(editor, data) {
