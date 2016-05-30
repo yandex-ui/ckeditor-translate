@@ -1,10 +1,11 @@
 {
   "name": "ckeditor-translate",
   "version": "1.0.1",
-  "description": "",
+  "description": "Translation interface for CKEditor.",
   "keywords": [
     "ckeditor",
-    "translate"
+    "translate",
+    "interface"
   ],
   "main": "plugin.js",
   "scripts": {
