@@ -199,6 +199,11 @@
          */
         onMode: function() {
             this.editable().on('scroll', this.plugins.translate.syncScrollWrap, this);
+
+            var wrap = this.ui.space('translate_wrap');
+            if (wrap) {
+                wrap.$.scrollTop = 0;
+            }
         },
 
         /**
