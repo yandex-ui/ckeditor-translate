@@ -429,7 +429,7 @@
                 return;
             }
 
-            editor.config.translate.call(this, data, editor.config.translateFrom, editor.config.translateTo).then(function(result) {
+            editor.config.translate.call(editor, data, editor.config.translateFrom, editor.config.translateTo).then(function(result) {
                 eventData.returnValue = result.data;
                 eventData.langFrom = result.langFrom;
                 eventData.langTo = result.langTo;
