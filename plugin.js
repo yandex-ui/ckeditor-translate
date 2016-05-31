@@ -10,16 +10,14 @@
     /**
      * Начальное обозначение языка, с которого выполняется перевод
      * @type {string}
-     * @default 'ru'
      */
-    CKEDITOR.config.translateFrom = 'ru';
+    CKEDITOR.config.translateFrom = undefined;
 
     /**
      * Начальное обозначение языка, на который выполняется перевод
      * @type {string}
-     * @default 'en'
      */
-    CKEDITOR.config.translateTo = 'en';
+    CKEDITOR.config.translateTo = undefined;
 
     /**
      * Автоматическое включение переводчика после инициализации редактора
@@ -311,9 +309,9 @@
                 headerId: this.ui.spaceId('translate_header'),
                 clickLangFn: this.fnTranslateLangSelect,
                 langFrom: langFrom,
-                langFromName: this.config.translateLangName.call(this, langFrom),
+                langFromName: this.config.translateLangName.call(this, langFrom) || '...',
                 langTo: langTo,
-                langToName: this.config.translateLangName.call(this, langTo),
+                langToName: this.config.translateLangName.call(this, langTo) || '...',
                 info: this.config.translateInfo && CKEDITOR.getTemplate('translateInfo').output({ href: this.config.translateInfo }) || ''
             });
 
