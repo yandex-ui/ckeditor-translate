@@ -29,8 +29,8 @@
     /**
      * Перевод текста
      * @param {string} data текст для перевода
-     * @param {string} langFrom обозначение языка, с которого выполняется перевод
-     * @param {string} langTo обозначение языка, на который выполняется перевод
+     * @param {string} [langFrom] обозначение языка, с которого выполняется перевод
+     * @param {string} [langTo] обозначение языка, на который выполняется перевод
      * @returns {vow.Promise}
      * @this {Editor}
      */
@@ -43,6 +43,7 @@
     /**
      * Выбор языка перевода
      * @param {string} currentLang текущее обозначение языка
+     * @param {HTMLElement} target
      * @returns {vow.Promise}
      * @this {Editor}
      */
@@ -116,7 +117,7 @@
         'translateHeader',
         '<div id="{headerId}" class="cke_translate_header">' +
             '<div class="cke_translate_header_from">' +
-                '<span class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'from\', \'{langFrom}\'); return false;">' +
+                '<span title="{langFromTitle}" class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'from\', \'{langFrom}\', this); return false;">' +
                     '{langFromName}' +
                 '</span>' +
             '</div>' +
@@ -125,7 +126,7 @@
                 '<rect height="100%" width="100%" style="fill: transparent;"></rect>' +
             '</svg>' +
             '<div class="cke_translate_header_to">' +
-                '<span class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'to\', \'{langTo}\'); return false;">' +
+                '<span title="{langToTitle}" class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'to\', \'{langTo}\', this); return false;">' +
                     '{langToName}' +
                 '</span>' +
             '</div>' +
@@ -139,7 +140,9 @@
 
         onLoad: function() {
             CKEDITOR.plugins.setLang('translate', 'ru', {
-                'translator': 'Переводчик'
+                translator: 'Переводчик',
+                fromTitle: 'язык исходного текста',
+                toTitle: 'язык перевода'
             });
         },
 
@@ -281,10 +284,11 @@
          * Выполнение запроса на выбор языка
          * @param {string} direction from|to обозначения языка с какого или на какой выполняется перевод
          * @param {string} currentLang обозначение текущего языка
+         * @param {HTMLElement} target
          * @this {Editor}
          */
-        onTranslateLangSelect: function(direction, currentLang) {
-            this.config.translateLangSelect.call(this, currentLang).then(function(lang) {
+        onTranslateLangSelect: function(direction, currentLang, target) {
+            this.config.translateLangSelect.call(this, currentLang, target).then(function(lang) {
                 if (direction === 'from') {
                     this.config.translateFrom = lang;
                 } else {
@@ -306,13 +310,15 @@
             langTo = langTo || this.config.translateTo;
 
             var htmlHeader = CKEDITOR.getTemplate('translateHeader').output({
-                headerId: this.ui.spaceId('translate_header'),
                 clickLangFn: this.fnTranslateLangSelect,
-                langFrom: langFrom,
+                headerId: this.ui.spaceId('translate_header'),
+                info: this.config.translateInfo && CKEDITOR.getTemplate('translateInfo').output({ href: this.config.translateInfo }) || '',
+                langFrom: langFrom || '',
                 langFromName: this.config.translateLangName.call(this, langFrom) || '...',
-                langTo: langTo,
+                langFromTitle: this.lang.translate.fromTitle,
+                langTo: langTo || '',
                 langToName: this.config.translateLangName.call(this, langTo) || '...',
-                info: this.config.translateInfo && CKEDITOR.getTemplate('translateInfo').output({ href: this.config.translateInfo }) || ''
+                langToTitle: this.lang.translate.toTitle
             });
 
             var elementHeader = this.ui.space('translate_header');
