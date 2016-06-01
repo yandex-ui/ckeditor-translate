@@ -99,7 +99,7 @@
     CKEDITOR.addTemplate(
         'translateWrapper',
         '<div id="{wrapId}" class="cke_translate_wrap">' +
-            '<div id="{contentId}" class="cke_translate_content"></div>' +
+            '<div id="{contentId}" class="cke_translate_content cke_editable"></div>' +
         '</div>'
     );
 
