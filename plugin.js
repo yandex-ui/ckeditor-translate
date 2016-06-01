@@ -292,22 +292,18 @@
             element.addClass('is-active');
 
             this.config.translateLangSelect.call(this, currentLang, element).then(function(lang) {
-                var previousLang;
-
                 if (direction === 'from') {
-                    previousLang = this.config.translateFrom;
                     this.config.translateFrom = lang;
 
-                    if (previousLang && this.config.translateTo === lang) {
-                        this.config.translateTo = previousLang;
+                    if (this._translateFromActual && this._translateToActual === lang) {
+                        this.config.translateTo = this._translateFromActual;
                     }
 
                 } else {
-                    previousLang = this.config.translateTo;
                     this.config.translateTo = lang;
 
-                    if (previousLang && this.config.translateFrom === lang) {
-                        this.config.translateFrom = previousLang;
+                    if (this._translateToActual && this._translateFromActual === lang) {
+                        this.config.translateFrom = this._translateToActual;
                     }
                 }
 
@@ -350,6 +346,9 @@
             } else {
                 this.ui.space('top').append(elementNewHeader);
             }
+
+            this._translateFromActual = langFrom;
+            this._translateToActual = langTo;
         },
 
         /**
