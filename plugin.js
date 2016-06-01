@@ -192,6 +192,8 @@
             editor.on('contentDom', this.onContentDom);
             editor.on('destroy', this.onDestroy);
             editor.on('mode', this.onMode);
+            editor.on('translate:apply', this.onTranslateApply);
+            editor.on('translate:cancel', this.onTranslateCancel);
         },
 
         /**
@@ -224,6 +226,9 @@
             this.translateDebounce.cancel();
             CKEDITOR.tools.removeFunction(this.fnTranslateLangSelect);
             CKEDITOR.tools.removeFunction(this.fnTranslateHeaderUpdate);
+
+            this._.translateData = undefined;
+            this._.translateError = false;
         },
 
         /**
@@ -391,6 +396,9 @@
                 break;
 
             case CKEDITOR.TRISTATE_OFF:
+                this._.translateData = undefined;
+                this._.translateError = false;
+
                 this.removeListener('mode', plugin.onChangeContent);
                 this.removeListener('change', plugin.onChangeContent);
                 this.removeListener('afterCommandExec', plugin.onAfterCommandExec);
@@ -458,6 +466,13 @@
                 eventData.returnValue = result.data;
                 eventData.langFrom = result.langFrom;
                 eventData.langTo = result.langTo;
+                editor._.translateData = result.data;
+                editor._.translateError = false;
+                editor.fire('afterCommandExec', eventData);
+
+            }).catch(function() {
+                editor._.translateData = undefined;
+                editor._.translateError = true;
                 editor.fire('afterCommandExec', eventData);
             });
         },
@@ -517,6 +532,38 @@
             default:
                 wrap.removeClass(CLASS_TRANSLATE_LOAD);
             }
+        },
+
+        /**
+         * Реакция на внешнее событие применения перевода
+         * @this {Editor}
+         */
+        onTranslateApply: function() {
+            var cmdShowTranslator = this.getCommand(CMD_SHOW_TRANSLATOR);
+            if (!cmdShowTranslator) {
+                return;
+            }
+
+            var data = !this._.translateError && this._.translateData;
+
+            cmdShowTranslator.setState(CKEDITOR.TRISTATE_OFF);
+
+            if (typeof data === 'string') {
+                this.setData(data);
+            }
+        },
+
+        /**
+         * Реакция на внешнее событие отключения интерфейса перевода
+         * @this {Editor}
+         */
+        onTranslateCancel: function() {
+            var cmdShowTranslator = this.getCommand(CMD_SHOW_TRANSLATOR);
+            if (!cmdShowTranslator) {
+                return;
+            }
+
+            cmdShowTranslator.setState(CKEDITOR.TRISTATE_OFF);
         }
     });
 
