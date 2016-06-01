@@ -322,8 +322,8 @@
          * @this {Editor}
          */
         onTranslateHeaderUpdate: function(langFrom, langTo) {
-            langFrom = langFrom || this.config.translateFrom;
-            langTo = langTo || this.config.translateTo;
+            langFrom = langFrom || this.config.translateFrom || this._translateFromActual;
+            langTo = langTo || this.config.translateTo || this._translateToActual;
 
             var htmlHeader = CKEDITOR.getTemplate('translateHeader').output({
                 clickLangFn: this.fnTranslateLangSelect,
