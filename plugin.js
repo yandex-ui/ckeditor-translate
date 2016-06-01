@@ -43,7 +43,7 @@
     /**
      * Выбор языка перевода
      * @param {string} currentLang текущее обозначение языка
-     * @param {HTMLElement} target
+     * @param {CKEDITOR.dom.element} target
      * @returns {vow.Promise}
      * @this {Editor}
      */
@@ -288,15 +288,35 @@
          * @this {Editor}
          */
         onTranslateLangSelect: function(direction, currentLang, target) {
-            this.config.translateLangSelect.call(this, currentLang, target).then(function(lang) {
+            var element = new CKEDITOR.dom.element(target);
+            element.addClass('is-active');
+
+            this.config.translateLangSelect.call(this, currentLang, element).then(function(lang) {
+                var previousLang;
+
                 if (direction === 'from') {
+                    previousLang = this.config.translateFrom;
                     this.config.translateFrom = lang;
+
+                    if (previousLang && this.config.translateTo === lang) {
+                        this.config.translateTo = previousLang;
+                    }
+
                 } else {
+                    previousLang = this.config.translateTo;
                     this.config.translateTo = lang;
+
+                    if (previousLang && this.config.translateFrom === lang) {
+                        this.config.translateFrom = previousLang;
+                    }
                 }
 
                 CKEDITOR.tools.callFunction(this.fnTranslateHeaderUpdate);
-            }, this);
+                this.translateDebounce();
+            }, this)
+            .always(function() {
+                element.removeClass('is-active');
+            });
         },
 
         /**
