@@ -324,7 +324,7 @@
             var element = new CKEDITOR.dom.element(target);
             element.addClass('is-active');
 
-            this.config.translateLangSelect.call(this, currentLang, element).then(function(lang) {
+            this.config.translateLangSelect.call(this, currentLang, element, target).then(function(lang) {
                 if (!this.translateEnabled()) {
                     return;
                 }
