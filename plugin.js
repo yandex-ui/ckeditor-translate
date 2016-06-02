@@ -148,7 +148,6 @@
 
     CKEDITOR.plugins.add('translate', {
         modes: { wysiwyg: 1, source: 1 },
-        requires: 'switchmode',
 
         onLoad: function() {
             CKEDITOR.plugins.setLang('translate', 'ru', {
