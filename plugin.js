@@ -159,16 +159,6 @@
         },
 
         init: function(editor) {
-            editor.translateDebounce = debounce(function() {
-                var cmdShowTranslator = editor.getCommand(CMD_SHOW_TRANSLATOR);
-
-                if (cmdShowTranslator.state === CKEDITOR.TRISTATE_ON) {
-                    var cmdTranslate = editor.getCommand(CMD_TRANSLATE);
-                    cmdTranslate.enable();
-                    cmdTranslate.exec();
-                }
-            }, 500);
-
             editor.fnTranslateLangSelect = CKEDITOR.tools.addFunction(this.onTranslateLangSelect, editor);
             editor.fnTranslateHeaderUpdate = CKEDITOR.tools.addFunction(this.onTranslateHeaderUpdate, editor);
 
@@ -221,6 +211,18 @@
             editor.on('contentDom', this.onContentDom);
             editor.on('destroy', this.onDestroy);
             editor.on('mode', this.onMode);
+
+            editor.translateEnabled = function() {
+                return cmdShowTranslator.state === CKEDITOR.TRISTATE_ON;
+            };
+
+            editor.translateDebounce = debounce(function() {
+                if (editor.translateEnabled()) {
+                    var cmdTranslate = editor.getCommand(CMD_TRANSLATE);
+                    cmdTranslate.enable();
+                    cmdTranslate.exec();
+                }
+            }, 500);
         },
 
         /**
@@ -269,7 +271,7 @@
                 return;
             }
 
-            if (this.getCommand(CMD_SHOW_TRANSLATOR).state !== CKEDITOR.TRISTATE_ON) {
+            if (!this.translateEnabled()) {
                 return;
             }
 
@@ -307,7 +309,7 @@
          * @this {Editor}
          */
         onChangeContent: function() {
-            if (this.getCommand(CMD_SHOW_TRANSLATOR).state === CKEDITOR.TRISTATE_ON) {
+            if (this.translateEnabled()) {
                 this.translateDebounce();
             }
         },
@@ -324,6 +326,10 @@
             element.addClass('is-active');
 
             this.config.translateLangSelect.call(this, currentLang, element).then(function(lang) {
+                if (!this.translateEnabled()) {
+                    return;
+                }
+
                 if (direction === 'from') {
                     this.config.translateFrom = lang;
 
@@ -488,22 +494,29 @@
             };
 
             if (!data) {
+                editor._.translateData = '';
+                editor._.translateError = false;
+                eventData.returnValue = '';
                 editor.fire('afterCommandExec', eventData);
                 return;
             }
 
             editor.config.translate.call(editor, data, editor.config.translateFrom, editor.config.translateTo).then(function(result) {
-                eventData.returnValue = result.data;
-                eventData.langFrom = result.langFrom;
-                eventData.langTo = result.langTo;
-                editor._.translateData = result.data;
-                editor._.translateError = false;
-                editor.fire('afterCommandExec', eventData);
+                if (editor.translateEnabled()) {
+                    eventData.returnValue = result.data;
+                    eventData.langFrom = result.langFrom;
+                    eventData.langTo = result.langTo;
+                    editor._.translateData = result.data;
+                    editor._.translateError = false;
+                    editor.fire('afterCommandExec', eventData);
+                }
 
             }).catch(function() {
-                editor._.translateData = undefined;
-                editor._.translateError = true;
-                editor.fire('afterCommandExec', eventData);
+                if (editor.translateEnabled()) {
+                    editor._.translateData = undefined;
+                    editor._.translateError = true;
+                    editor.fire('afterCommandExec', eventData);
+                }
             });
         },
 
@@ -531,7 +544,9 @@
             }
 
             // язык в результате перевода может отличаться от указанного в конфиге
-            if (data.langFrom !== this.config.translateFrom || data.langTo !== this.config.translateTo) {
+            if (data.langFrom !== this.config.translateFrom ||
+                data.langTo !== this.config.translateTo) {
+
                 CKEDITOR.tools.callFunction(this.fnTranslateHeaderUpdate, data.langFrom, data.langTo);
             }
 
@@ -570,14 +585,13 @@
          * @this {CKEDITOR.command}
          */
         onTranslateApply: function(editor) {
-            var cmdShowTranslator = editor.getCommand(CMD_SHOW_TRANSLATOR);
-            if (!cmdShowTranslator) {
+            if (!editor.translateEnabled()) {
                 return false;
             }
 
             var data = !editor._.translateError && editor._.translateData;
 
-            cmdShowTranslator.setState(CKEDITOR.TRISTATE_OFF);
+            editor.getCommand(CMD_SHOW_TRANSLATOR).setState(CKEDITOR.TRISTATE_OFF);
 
             if (typeof data === 'string') {
                 editor.setData(data);

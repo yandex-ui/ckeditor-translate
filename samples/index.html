@@ -69,6 +69,7 @@
         'themeResetAll': false,
         'language': 'ru',
         'enableHotkeys': true,
+        'svgicons': true,
         'title': '',
         'height': 500,
         'extraPlugins': 'translate',
@@ -80,6 +81,24 @@
     };
 
     CKEDITOR.editorConfig(config);
+
+    config.toolbar = [
+        { 'name': 'attachment', 'items': [ 'Attachment' ] },
+        { 'name': 'clipboard', 'items': [ 'Undo', 'Redo' ] }, // 'PasteFromWord'
+        { 'name': 'basicstyles', 'items': [ 'Bold', 'Italic', 'Underline', 'Strike' ] },
+        { 'name': 'links', 'items': [ 'Link', 'Unlink' ] },
+        { 'name': 'blockquote', 'items': [ 'Blockquote' ] },
+        { 'name': 'styles', 'items': [ 'TextColor', 'BGColor' ] }, // 'MailTextColor', 'MailBGColor'
+        { 'name': 'fontstyles', 'items': [ 'Font', 'FontSize' ] }, // 'MailFont', 'MailFontSize'
+        { 'name': 'emoticons', 'items': [ 'Emoticons' ] },
+        { 'name': 'paragraph', 'items': [ 'NumberedList', 'BulletedList' ] },
+        { 'name': 'align', 'items': [ 'JustifyLeft', 'JustifyCenter', 'JustifyRight' ] },
+        { 'name': 'tools', 'items': [ 'Maximize' ] },
+        { 'name': 'removeformat', 'items': [ 'RemoveFormat' ] },
+        '|',
+        { 'name': 'translate', 'items': [ '&Translate' ] },
+        { 'name': 'switchmode', 'items': [ '&SwitchMode' ] }
+    ];
 
     CKEDITOR.replace('editor', config);
 }());
