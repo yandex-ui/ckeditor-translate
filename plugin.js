@@ -82,6 +82,12 @@
     var CMD_TRANSLATE_APPLY = 'translate_apply';
 
     /**
+     * Название команды переключения перевода
+     * @type {string}
+     */
+    var CMD_TRANSLATE_TOGGLE = 'translate_toggle';
+
+    /**
      * Название класса для враппера содержимого редактора
      * @type {string}
      */
@@ -189,7 +195,18 @@
             editor.addCommand(CMD_TRANSLATE_APPLY, {
                 modes: { wysiwyg: 1, source: 1 },
                 editorFocus: false,
+                canUndo: false,
+                readOnly: 1,
+                startDisabled: true,
                 exec: this.onTranslateApply
+            });
+
+            editor.addCommand(CMD_TRANSLATE_TOGGLE, {
+                modes: { wysiwyg: 1, source: 1 },
+                editorFocus: false,
+                canUndo: false,
+                readOnly: 1,
+                exec: this.onTranslateToggle
             });
 
             editor.ui.addButton('Translate', {
@@ -204,7 +221,6 @@
             editor.on('contentDom', this.onContentDom);
             editor.on('destroy', this.onDestroy);
             editor.on('mode', this.onMode);
-            editor.on('translate:cancel', this.onTranslateCancel);
         },
 
         /**
@@ -374,6 +390,7 @@
         onStateShowTranslator: function() {
             var cmdTranslate = this.getCommand(CMD_TRANSLATE);
             var cmdShowTranslator = this.getCommand(CMD_SHOW_TRANSLATOR);
+            var cmdTranslateApply = this.getCommand(CMD_TRANSLATE_APPLY);
             var wrap = this.ui.space('contents_wrap');
             var plugin = this.plugins.translate;
             var elementWrap;
@@ -381,6 +398,7 @@
             switch (cmdShowTranslator.state) {
             case CKEDITOR.TRISTATE_ON:
                 cmdTranslate.enable();
+                cmdTranslateApply.enable();
                 wrap.addClass(CLASS_TRANSLATE_WRAP);
 
                 CKEDITOR.tools.callFunction(this.fnTranslateHeaderUpdate);
@@ -416,6 +434,7 @@
 
                 this.translateDebounce.cancel();
                 cmdTranslate.disable();
+                cmdTranslateApply.disable();
                 wrap.removeClass(CLASS_TRANSLATE_WRAP);
 
                 var elementHeader = this.ui.space('translate_header');
@@ -546,7 +565,7 @@
         },
 
         /**
-         * Реакция на внешнее событие применения перевода
+         * Обработчик команды применения перевода
          * @param {Editor} editor
          * @this {CKEDITOR.command}
          */
@@ -569,16 +588,28 @@
         },
 
         /**
-         * Реакция на внешнее событие отключения интерфейса перевода
-         * @this {Editor}
+         * Обработчик команды переключения интерфейса перевода
+         * @param {Editor} editor
+         * @param {boolean} [toggle]
+         * @this {CKEDITOR.command}
          */
-        onTranslateCancel: function() {
-            var cmdShowTranslator = this.getCommand(CMD_SHOW_TRANSLATOR);
+        onTranslateToggle: function(editor, toggle) {
+            var cmdShowTranslator = editor.getCommand(CMD_SHOW_TRANSLATOR);
             if (!cmdShowTranslator) {
                 return;
             }
 
-            cmdShowTranslator.setState(CKEDITOR.TRISTATE_OFF);
+            var prevState = cmdShowTranslator.state;
+            var nextState;
+
+            if (typeof toggle === 'undefined') {
+                nextState = prevState === CKEDITOR.TRISTATE_ON ? CKEDITOR.TRISTATE_OFF : CKEDITOR.TRISTATE_ON;
+
+            } else {
+                nextState = toggle ? CKEDITOR.TRISTATE_ON : CKEDITOR.TRISTATE_OFF;
+            }
+
+            cmdShowTranslator.setState(nextState);
         }
     });
 
