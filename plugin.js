@@ -144,7 +144,7 @@
         'translateHeader',
         '<div id="{headerId}" class="cke_translate_header">' +
             '<div class="cke_translate_header_from">' +
-                '<span title="{langFromTitle}" class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'from\', \'{langFrom}\', this); return false;">' +
+                '<span {cspNonce} title="{langFromTitle}" class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'from\', \'{langFrom}\', this); return false;">' +
                     '{langFromName}' +
                 '</span>' +
             '</div>' +
@@ -153,7 +153,7 @@
                 '<rect height="100%" width="100%" style="fill: transparent;"></rect>' +
             '</svg>' +
             '<div class="cke_translate_header_to">' +
-                '<span title="{langToTitle}" class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'to\', \'{langTo}\', this); return false;">' +
+                '<span {cspNonce} title="{langToTitle}" class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'to\', \'{langTo}\', this); return false;">' +
                     '{langToName}' +
                 '</span>' +
             '</div>' +
@@ -546,6 +546,7 @@
 
         var htmlHeader = CKEDITOR.getTemplate('translateHeader').output({
             clickLangFn:    editor.fnTranslateLangSelect,
+            cspNonce:       editor.config.cspNonce ? 'nonce="' + editor.config.cspNonce + '"' : '',
             headerId:       editor.ui.spaceId('translate_header'),
             info:           info,
             langFrom:       langFrom || '',
