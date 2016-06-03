@@ -207,7 +207,7 @@
 
             cmdTranslate.on('state', this.onStateTranslate, editor);
             cmdShowTranslator.on('state', this.onStateShowTranslator, editor);
-            editor.on('contentDom', this.onContentDom);
+            editor.on('instanceReady', this.onInstanceReady);
             editor.on('destroy', this.onDestroy);
             editor.on('mode', this.onMode);
 
@@ -229,9 +229,9 @@
          * если установлена настройка translateAutoEnable
          * @this {Editor}
          */
-        onContentDom: function() {
+        onInstanceReady: function() {
             if (this.config.translateAutoEnable) {
-                this.getCommand(CMD_SHOW_TRANSLATOR).setState(CKEDITOR.TRISTATE_ON);
+                this.execCommand(CMD_TRANSLATE_TOGGLE, true);
             }
         },
 
