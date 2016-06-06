@@ -129,7 +129,7 @@
      */
     CKEDITOR.addTemplate(
         'translateInfo',
-        '<a class="cke_translate_header_info" href="{href}" target="_blank" rel="nofollow noopener">' +
+        '<a class="cke_translate_header_info" href="{href}" target="_blank" rel="nofollow noopener" title="{title}">' +
             '<svg xmlns="http://www.w3.org/2000/svg" class="cke_button_icon cke_svgicon cke_svgicon--info">' +
                 '<use xlink:href="#cke_svgicon--info"/>' +
                 '<rect height="100%" width="100%" style="fill: transparent;"></rect>' +
@@ -168,7 +168,8 @@
             CKEDITOR.plugins.setLang('translate', 'ru', {
                 translator: 'Переводчик',
                 fromTitle: 'язык исходного текста',
-                toTitle: 'язык перевода'
+                toTitle: 'язык перевода',
+                infoTitle: 'Информация'
             });
         },
 
@@ -540,7 +541,8 @@
         var info = '';
         if (editor.config.translateInfo) {
             info = CKEDITOR.getTemplate('translateInfo').output({
-                href: editor.config.translateInfo
+                href: editor.config.translateInfo,
+                title: editor.lang.translate.infoTitle
             });
         }
 
