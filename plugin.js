@@ -199,7 +199,7 @@
 
             editor.addCommand(CMD_TRANSLATE_APPLY, {
                 modes: { wysiwyg: 1, source: 1 },
-                editorFocus: false,
+                editorFocus: true,
                 canUndo: false,
                 readOnly: 1,
                 startDisabled: true,
@@ -233,9 +233,7 @@
 
             editor.translateDebounce = debounce(function() {
                 if (editor.translateEnabled()) {
-                    var cmdTranslate = editor.getCommand(CMD_TRANSLATE);
-                    cmdTranslate.enable();
-                    cmdTranslate.exec();
+                    editor.execCommand(CMD_TRANSLATE);
                 }
             }, 500);
         },
@@ -260,6 +258,13 @@
             var wrap = this.ui.space('translate_wrap');
             if (wrap) {
                 wrap.$.scrollTop = 0;
+            }
+
+            // после переключения режима оформления все команды дизейблятся
+            // у которых установлено startDisabled
+            if (this.translateEnabled()) {
+                this.getCommand(CMD_TRANSLATE).enable();
+                this.getCommand(CMD_TRANSLATE_APPLY).enable();
             }
         },
 
@@ -484,11 +489,14 @@
             var cmdTranslate = this.getCommand(CMD_TRANSLATE);
             var wrap = this.ui.space('contents_wrap');
 
-            switch (cmdTranslate.state) {
-            case CKEDITOR.TRISTATE_ON:
+            if (cmdTranslate.state === CKEDITOR.TRISTATE_ON &&
+                cmdTranslate.previousState === CKEDITOR.TRISTATE_OFF) {
+
                 wrap.addClass(CLASS_TRANSLATE_LOAD);
-                break;
-            default:
+
+            } else if (cmdTranslate.state === CKEDITOR.TRISTATE_OFF &&
+                cmdTranslate.previousState === CKEDITOR.TRISTATE_ON) {
+
                 wrap.removeClass(CLASS_TRANSLATE_LOAD);
             }
         },
