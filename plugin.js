@@ -263,6 +263,8 @@
             // после переключения режима оформления все команды дизейблятся
             // у которых установлено startDisabled
             if (this.translateEnabled()) {
+                // кэш с содержимым из другого режима нужно очистить
+                this._.translateData = undefined;
                 this.getCommand(CMD_TRANSLATE).enable();
                 this.getCommand(CMD_TRANSLATE_APPLY).enable();
             }
@@ -487,17 +489,20 @@
          */
         onStateTranslate: function() {
             var cmdTranslate = this.getCommand(CMD_TRANSLATE);
+            var cmdTranslateApply = this.getCommand(CMD_TRANSLATE_APPLY);
             var wrap = this.ui.space('contents_wrap');
 
             if (cmdTranslate.state === CKEDITOR.TRISTATE_ON &&
                 cmdTranslate.previousState === CKEDITOR.TRISTATE_OFF) {
 
                 wrap.addClass(CLASS_TRANSLATE_LOAD);
+                cmdTranslateApply.disable();
 
             } else if (cmdTranslate.state === CKEDITOR.TRISTATE_OFF &&
                 cmdTranslate.previousState === CKEDITOR.TRISTATE_ON) {
 
                 wrap.removeClass(CLASS_TRANSLATE_LOAD);
+                cmdTranslateApply.enable();
             }
         },
 
@@ -692,6 +697,7 @@
         cmdTranslate.disable();
         cmdTranslateApply.disable();
         wrap.removeClass(CLASS_TRANSLATE_WRAP);
+        wrap.removeClass(CLASS_TRANSLATE_LOAD);
 
         var elementHeader = editor.ui.space('translate_header');
         if (elementHeader) {
