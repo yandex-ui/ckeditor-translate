@@ -142,7 +142,7 @@
      */
     CKEDITOR.addTemplate(
         'translateHeader',
-        '<div id="{headerId}" class="cke_translate_header" onclick="CKEDITOR.tools.callFunction({clickFocusFn}); return false;">' +
+        '<div id="{headerId}" class="cke_translate_header" onclick="CKEDITOR.tools.callFunction({clickFocusFn});">' +
             '<div class="cke_translate_header_from">' +
                 '<span title="{langFromTitle}" class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'from\', \'{langFrom}\', this, event); return false;">' +
                     '{langFromName}' +
