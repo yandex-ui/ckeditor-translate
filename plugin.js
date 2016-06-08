@@ -669,6 +669,7 @@
         }
 
         if (cmdShowTranslator.previousState === CKEDITOR.TRISTATE_OFF) {
+            fireResize(editor);
             this.fire('translate:enabled');
         }
 
@@ -710,7 +711,34 @@
         }
 
         if (cmdShowTranslator.previousState === CKEDITOR.TRISTATE_ON) {
+            fireResize(editor);
             editor.fire('translate:disabled');
+        }
+    }
+
+    /**
+     * Запуск события ресайза окна.
+     * Только для вчлюченного плагина максимизации окна.
+     * @param {Editor} editor
+     */
+    function fireResize(editor) {
+        var checkFire = function() {
+            if (editor && editor.status === 'ready') {
+                var maximize = editor.getCommand('maximize');
+                if (maximize && maximize.state === CKEDITOR.TRISTATE_ON) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        if (checkFire()) {
+            setTimeout(function() {
+                if (checkFire()) {
+                    CKEDITOR.document.getWindow().fire('resize');
+                }
+            }, 0);
         }
     }
 
