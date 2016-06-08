@@ -669,7 +669,7 @@
         }
 
         if (cmdShowTranslator.previousState === CKEDITOR.TRISTATE_OFF) {
-            fireResize(editor);
+            fireResize(this);
             this.fire('translate:enabled');
         }
 
