@@ -341,7 +341,9 @@
          * @this {Editor}
          */
         onTranslateEditorFocus: function() {
-            this.focus();
+            if (!CKEDITOR.env.gecko) {
+                this.focus();
+            }
         },
 
         /**
