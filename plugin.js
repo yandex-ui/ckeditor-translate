@@ -142,7 +142,7 @@
      */
     CKEDITOR.addTemplate(
         'translateHeader',
-        '<div id="{headerId}" class="cke_translate_header" onclick="CKEDITOR.tools.callFunction({clickFocusFn});">' +
+        '<div id="{headerId}" class="cke_translate_header">' +
             '<div class="cke_translate_header_from">' +
                 '<span title="{langFromTitle}" class="cke_translate_lang" onclick="CKEDITOR.tools.callFunction({clickLangFn}, \'from\', \'{langFrom}\', this, event); return false;">' +
                     '{langFromName}' +
@@ -175,7 +175,6 @@
 
         init: function(editor) {
             editor.fnTranslateLangSelect = CKEDITOR.tools.addFunction(this.onTranslateLangSelect, editor);
-            editor.fnTranslateEditorFocus = CKEDITOR.tools.addFunction(this.onTranslateEditorFocus, editor);
 
             var cmdTranslate = editor.addCommand(CMD_TRANSLATE, {
                 modes: { wysiwyg: 1, source: 1 },
@@ -276,7 +275,6 @@
         onDestroy: function() {
             this.translateDebounce.cancel();
             CKEDITOR.tools.removeFunction(this.fnTranslateLangSelect);
-            CKEDITOR.tools.removeFunction(this.fnTranslateEditorFocus);
 
             this._.translateData = undefined;
             this._.translateError = false;
@@ -333,16 +331,6 @@
         onChangeContent: function() {
             if (this.translateEnabled()) {
                 this.translateDebounce();
-            }
-        },
-
-        /**
-         * Фокус в редактор при клике в шапку выбора языков
-         * @this {Editor}
-         */
-        onTranslateEditorFocus: function() {
-            if (!CKEDITOR.env.gecko) {
-                this.focus();
             }
         },
 
@@ -575,7 +563,6 @@
         }
 
         var htmlHeader = CKEDITOR.getTemplate('translateHeader').output({
-            clickFocusFn:   editor.fnTranslateEditorFocus,
             clickLangFn:    editor.fnTranslateLangSelect,
             headerId:       editor.ui.spaceId('translate_header'),
             info:           info,
