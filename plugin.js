@@ -451,7 +451,11 @@
 
             // обновление перевода
             if (typeof data.returnValue !== 'undefined') {
-                this.ui.space('translate_content').setHtml(data.returnValue);
+                if (this.mode === 'source') {
+                    this.ui.space('translate_content').setText(data.returnValue);
+                } else {
+                    this.ui.space('translate_content').setHtml(data.returnValue);
+                }
             }
 
             // язык в результате перевода может отличаться от указанного в конфиге
